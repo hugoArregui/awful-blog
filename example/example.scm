@@ -31,10 +31,3 @@
     (for-each (cut define-entry-page url <>) entries)))
 
 (define-blog-pages "/blog")
-
-(define-page "/test"
-  (lambda () 
-    `(p "hello"))
-  title: "Un test"
-  headers: (<meta> http-equiv:"Content-Type" content:"text/html; charset=utf-8"))
-
