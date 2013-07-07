@@ -1,0 +1,4 @@
+((title "Read the docs!")
+ (type redirect)
+ (resource "http://api.call-cc.org/doc/")
+ (tags chicken programming scheme))

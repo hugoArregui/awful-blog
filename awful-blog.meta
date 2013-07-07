@@ -1,0 +1,7 @@
+;; -*- scheme -*-
+
+((license "BSD License")
+ (category lang-exts)
+ (needs awful posix matchable srfi-13 traversal utils data-structures srfi-1 files lowdown html-tags html-utils)
+ (author "Hugo Arregui")
+ (synopsis "Blog tool for awful web framework"))

@@ -1,0 +1,7 @@
+(compile -s -O2 -d1 -J awful-blog.scm)
+(compile -s -O2 -d1 awful-blog.import.scm)
+
+(install-extension
+  'awful-blog
+  '("awful-blog.so" "awful-blog.import.so")
+  '((version "0.1")))
