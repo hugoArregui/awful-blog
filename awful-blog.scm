@@ -1,8 +1,8 @@
 (module awful-blog
         (collect-entries define-entry-page index-url 
          entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra ; entry related procedures
-         entry->sxml text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
-         entries-dir entries-info-extension default-text-file-extension default-markdown-file-extension) ; parameters
+         text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
+         entry->sxml entries-dir entries-info-extension default-text-file-extension default-markdown-file-extension) ; parameters
 
         (import chicken scheme data-structures files)
         (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-tags html-utils)
