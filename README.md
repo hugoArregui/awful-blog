@@ -27,7 +27,7 @@ For more info, you could check the example into "example" dir.
 
 ### Records 
 
-    [record] entry
+    [record] (entry title tags url type resource extra)
 
 ### Parameters
 
