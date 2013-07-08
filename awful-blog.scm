@@ -120,7 +120,7 @@
               (apply define-page 
                      (cons* path
                             (lambda () 
-                              ((entry->sxml) entry)) args)))))
+                              ((entry->sxml) entry)) extra-args)))))
 
         (define (index-url mount-url entry)
           (if (redirect-entry? entry)
