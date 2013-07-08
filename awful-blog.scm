@@ -92,7 +92,7 @@
                    (h1 ,title))
               ,(map (lambda (line)
                       (list line '(br)))
-                    (string-split content "\n")))))
+                    (string-split content "\n" #t)))))
 
         (define (markdown-entry->sxml entry)
           (let* ((file    (make-pathname (entries-dir) (entry-resource entry)))
@@ -111,15 +111,16 @@
 
         (define entry->sxml (make-parameter entry->sxml/default))
 
-        (define (define-entry-page mount-url entry)
+        (define (define-entry-page mount-url entry . args)
           (if (not (redirect-entry? entry))
-            (let* ((title     (entry-title entry))
-                   (path      (make-pathname mount-url (entry-url entry))))
-              (define-page path
-                (lambda () 
-                  ((entry->sxml) entry))
-                title: title
-                headers: (<meta> http-equiv:"Content-Type" content:"text/html; charset=utf-8")))))
+            (let* ((path       (make-pathname mount-url (entry-url entry)))
+                   (extra-args (if (not (member 'title: args))
+                                 (cons* 'title: (entry-title entry) args)
+                                 args)))
+              (apply define-page 
+                     (cons* path
+                            (lambda () 
+                              ((entry->sxml) entry)) args)))))
 
         (define (index-url mount-url entry)
           (if (redirect-entry? entry)
