@@ -8,7 +8,6 @@
         (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-tags html-utils)
 
         (enable-sxml #t)
-        (generate-sxml? #t)
 
         (define entries-dir                     (make-parameter "articles/"))
         (define entries-info-extension          (make-parameter "info"))
@@ -48,8 +47,19 @@
             file
             (string-append file "." extension)))
 
+        (define (read-info-file info-file)
+          (with-input-from-file info-file 
+                                (lambda () 
+                                  (call-with-current-continuation
+                                    (lambda (k)
+                                      (with-exception-handler (lambda (x) 
+                                                                (print "error reading: " info-file)
+                                                                (k '()))
+                                                              (lambda () (read))))))))
+
         (define (make-entry-from-info-file info-file)
-          (let* ((data          (with-input-from-file info-file (lambda () (read))))
+          (let* ((data          (read-info-file info-file))
+                 (dir           (pathname-directory info-file))
                  (info-filename (pathname-file info-file))
                  (entry         (make-entry #f '() #f #f #f '())))
             (for-each (match-lambda 
@@ -70,9 +80,9 @@
               (entry-resource-set! entry 
                                    (case (entry-type entry)
                                      ((text)
-                                      (append-file-extension info-filename (default-text-file-extension)))
+                                      (make-pathname dir (append-file-extension info-filename (default-text-file-extension))))
                                      ((markdown)
-                                      (append-file-extension info-filename (default-markdown-file-extension)))
+                                      (make-pathname dir (append-file-extension info-filename (default-markdown-file-extension))))
                                      (else
                                        (invalid-entry-error entry "resource is required")))))
             (validate-entry entry)))
@@ -85,7 +95,7 @@
                                  (cons (make-entry-from-info-file info-file) files))))
 
         (define (text-entry->sxml entry)
-          (let* ((file    (make-pathname (entries-dir) (entry-resource entry)))
+          (let* ((file    (entry-resource entry))
                  (content (with-input-from-file file (lambda () (read-all))))
                  (title   (entry-title entry)))
             `((div (@ (class "page-header"))
@@ -95,7 +105,7 @@
                     (string-split content "\n" #t)))))
 
         (define (markdown-entry->sxml entry)
-          (let* ((file    (make-pathname (entries-dir) (entry-resource entry)))
+          (let* ((file    (entry-resource entry))
                  (content (with-input-from-file file (lambda () (markdown->sxml (current-input-port)))))
                  (title   (entry-title entry)))
             content))
