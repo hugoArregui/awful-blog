@@ -3,5 +3,6 @@
 ((license "BSD License")
  (category web)
  (needs awful posix matchable srfi-13 traversal utils data-structures srfi-1 files lowdown html-tags html-utils)
+ (test-depends server-test test http-client)
  (author "Hugo Arregui")
  (synopsis "Blog tool for awful web framework"))
