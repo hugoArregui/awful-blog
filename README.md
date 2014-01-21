@@ -12,7 +12,7 @@ The info file:
      (url  <url>))
 
 -  title: entry title
--  type: currently supported by the tool are: text, markdown, redirect
+-  type: currently supported by the tool are: text, markdown, html, redirect
 -  resource: if type == redirect, resource is the redirect url,
    otherwise point to a non-default file location. If omitted, awful-blog will
    search for a file with the same name as the info file and the default
@@ -43,18 +43,12 @@ Directory for seach entries.
 
 File extension for entry files: info.
 
-#### default-text-file-extension 
+#### default-file-extension
 
     [parameter] default-text-file-extension 
 
-Default file extension for text files: "".
+alist containing default file extensions. Keys are: text, markdown, html.
 
-#### default-markdown-file-extension 
-
-    [parameter] default-markdown-file-extension
-
-Default file extension for markdown files: "md".
-    
 ####  entry->sxml 
 
     [parameter] entry->sxml

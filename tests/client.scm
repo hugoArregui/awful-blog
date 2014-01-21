@@ -18,6 +18,9 @@
 (define (expect/markdown content)
   (sprintf "\n<p>~a</p>" content))
 
+(define (expect/html content)
+  (sprintf "\n<p>~a</p>\n" content))
+
 (test-begin "awful-blog")
 
 (pp (get "/blog/"))
@@ -27,5 +30,8 @@
 
 (test (expect/markdown "this is bar")
       (get "/blog/bar"))
+
+(test (expect/html "this is hh")
+      (get "/blog/hh"))
 
 (test-end "awful-blog")

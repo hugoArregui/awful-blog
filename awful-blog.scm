@@ -2,17 +2,18 @@
         (collect-entries define-entry-page index-url 
          entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra ; entry related procedures
          text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
-         entry->sxml entries-dir entries-info-extension default-text-file-extension default-markdown-file-extension) ; parameters
+         entry->sxml entries-dir entries-info-extension default-file-extensions) ; parameters
 
         (import chicken scheme data-structures files)
-        (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-tags html-utils)
+        (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-tags html-utils html-parser)
 
         (enable-sxml #t)
 
-        (define entries-dir                     (make-parameter "articles/"))
-        (define entries-info-extension          (make-parameter "info"))
-        (define default-text-file-extension     (make-parameter ""))
-        (define default-markdown-file-extension (make-parameter "md"))
+        (define entries-dir                (make-parameter "articles/"))
+        (define entries-info-extension     (make-parameter "info"))
+        (define default-file-extensions    (make-parameter `((text     . "") 
+                                                             (markdown . "md")
+                                                             (html     . "html"))))
 
         (define-record entry title tags url type resource extra)
 
@@ -78,14 +79,17 @@
                       data)
             (unless (entry-resource entry)
               (entry-resource-set! entry 
-                                   (case (entry-type entry)
-                                     ((text)
-                                      (make-pathname dir (append-file-extension info-filename (default-text-file-extension))))
-                                     ((markdown)
-                                      (make-pathname dir (append-file-extension info-filename (default-markdown-file-extension))))
-                                     (else
+                                   (let ((type (entry-type entry)))
+                                     (if (member type '(text markdown html))
+                                       (make-pathname dir (append-file-extension info-filename (get-default-extension type)))
                                        (invalid-entry-error entry "resource is required")))))
             (validate-entry entry)))
+
+        (define (get-default-extension type)
+          (let ((r (assq type (default-file-extensions))))
+            (if r
+              (cdr r)
+              (error "no default extension found"))))
 
         (define (collect-entries)
           (find-files (entries-dir)
@@ -96,7 +100,7 @@
 
         (define (text-entry->sxml entry)
           (let* ((file    (entry-resource entry))
-                 (content (with-input-from-file file (lambda () (read-all))))
+                 (content (with-input-from-file file read-all))
                  (title   (entry-title entry)))
             `((div (@ (class "page-header"))
                    (h1 ,title))
@@ -106,9 +110,15 @@
 
         (define (markdown-entry->sxml entry)
           (let* ((file    (entry-resource entry))
-                 (content (with-input-from-file file (lambda () (markdown->sxml (current-input-port)))))
+                 (content (with-input-from-file file (cut markdown->sxml (current-input-port))))
                  (title   (entry-title entry)))
             content))
+
+        (define (html-entry->sxml entry)
+          (let* ((file    (entry-resource entry))
+                 (content (with-input-from-file file html->sxml))
+                 (title   (entry-title entry)))
+            (cdr content)))
 
         (define (entry->sxml/default entry)
           (case (entry-type entry)
@@ -116,6 +126,8 @@
              (text-entry->sxml entry))
             ((markdown)
              (markdown-entry->sxml entry))
+            ((html)
+             (html-entry->sxml entry))
             (else
               (error 'entry->sxml (format "entry type ~a not supported" (entry-type entry))))))
 
