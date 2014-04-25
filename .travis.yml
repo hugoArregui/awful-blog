@@ -1,5 +1,6 @@
 language: C
 install:
   - sudo apt-get install chicken-bin
+  - chicken-install -s spiffy-request-vars
 script: chicken-install -s -test
 
