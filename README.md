@@ -1,5 +1,7 @@
 # awful-blog 
 
+[![Build Status](https://travis-ci.org/hugoArregui/awful-blog)](https://travis-ci.org/hugoArregui/awful-blog)
+
 A blog egg for Awful. The idea is very simple: each blog entry has info file in the entries directory (see entries-dir), 
 the info file is parsed and loaded into the app. 
 
