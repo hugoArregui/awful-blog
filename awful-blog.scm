@@ -1,6 +1,7 @@
 (module awful-blog
         (collect-entries define-entry-page index-url 
-         entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra ; entry related procedures
+         entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra 
+         entry-extra-get ; entry related procedures
          text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
          entry->sxml entries-dir entries-info-extension default-file-extensions) ; parameters
 
@@ -11,11 +12,22 @@
 
         (define entries-dir                (make-parameter "articles/"))
         (define entries-info-extension     (make-parameter "info"))
-        (define default-file-extensions    (make-parameter `((text     . "") 
+        (define default-file-extensions    (make-parameter `((text     . "")
                                                              (markdown . "md")
-                                                             (html     . "html"))))
+                                                             (html     . "html")
+                                                             (shtml    . "scm"))))
+        (define valid-entry-types (map car (default-file-extensions)))
+
+        (map car (default-file-extensions))
+
 
         (define-record entry title tags url type resource extra)
+
+	(define (entry-extra-get entry key)
+	  (let* ((extra (entry-extra entry))
+	  	 (value (assq key extra)))
+	    (and value
+	    	 (cadr value))))
 
         (define (redirect-entry? entry)
           (eq? (entry-type entry) 'redirect))
@@ -75,12 +87,12 @@
                         (('resource resource)
                          (entry-resource-set! entry resource))
                         (extra
-                          (entry-extra-set! entry extra)))
+                          (entry-extra-set! entry (cons extra (entry-extra entry)))))
                       data)
             (unless (entry-resource entry)
               (entry-resource-set! entry 
                                    (let ((type (entry-type entry)))
-                                     (if (member type '(text markdown html))
+                                     (if (not (eq? type 'redirect))
                                        (make-pathname dir (append-file-extension info-filename (get-default-extension type)))
                                        (invalid-entry-error entry "resource is required")))))
             (validate-entry entry)))
@@ -120,6 +132,12 @@
                  (title   (entry-title entry)))
             (cdr content)))
 
+        (define (shtml-entry->sxml entry)
+          (let* ((file    (entry-resource entry))
+                 (content (with-input-from-file file read))
+                 (title   (entry-title entry)))
+            (eval content)))
+
         (define (entry->sxml/default entry)
           (case (entry-type entry)
             ((text)
@@ -128,6 +146,8 @@
              (markdown-entry->sxml entry))
             ((html)
              (html-entry->sxml entry))
+            ((shtml)
+             (shtml-entry->sxml entry))
             (else
               (error 'entry->sxml (format "entry type ~a not supported" (entry-type entry))))))
 

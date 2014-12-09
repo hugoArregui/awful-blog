@@ -14,7 +14,7 @@ The info file:
      (url  <url>))
 
 -  title: entry title
--  type: currently supported by the tool are: text, markdown, html, redirect
+-  type: currently supported by the tool are: text, markdown, html, redirect, shtml
 -  resource: if type == redirect, resource is the redirect url,
    otherwise point to a non-default file location. If omitted, awful-blog will
    search for a file with the same name as the info file and the default
