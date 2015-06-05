@@ -16,7 +16,8 @@
         (define default-file-extensions    (make-parameter `((""     . text)
                                                              ("md"   . markdown)
                                                              ("html" . html)
-                                                             ("scm"  . shtml))))
+                                                             ("scm"  . shtml)
+                                                             ("tsv"  . tsv))))
 
         (define-record entry title tags url type resource extra)
 
@@ -66,6 +67,41 @@
                  (title   (entry-title entry)))
             (eval content)))
 
+	(define (tsv->sxml entry)
+	  (let ((split-by-tab (cut string-split <> "\t" #t))
+		(file         (entry-resource entry)))
+	    (call-with-values (lambda ()
+				(let loop ((lines    (string-split (read-all file) "\n"))
+					   (headers  #f)
+					   (rows     '()))
+				  (cond ((null? lines)
+					 (values headers rows))
+					((string-prefix? "#" (car lines))
+					 (loop (cdr lines) headers rows))
+					((not headers)
+					 (loop (cdr lines) (split-by-tab (car lines)) rows))
+					(#t
+					 (let* ((row      (split-by-tab (car lines)))
+						(lrow     (length row))
+						(lheaders (length headers)))
+					   (if (< lrow lheaders)
+					     (append! row (make-list (- lheaders lrow))))
+					   (loop (cdr lines) headers (cons row rows)))))))
+			      (lambda (headers rows)
+				`((table
+				    (thead
+				      (tr
+					,(map (lambda (header)
+						`(th ,header))
+					      headers)))
+				    (tbody
+				      ,(map (lambda (row)
+					      `(tr 
+						 ,(map (lambda (cell)
+							 `(td ,cell))
+						       row)))
+					    rows))))))))
+
         (define (entry->sxml/default entry)
           (case (entry-type entry)
             ((text)
@@ -76,6 +112,8 @@
              (html-entry->sxml entry))
             ((shtml)
              (shtml-entry->sxml entry))
+            ((tsv)
+             (tsv->sxml entry))
             (else
               (error 'entry->sxml (format "entry type ~a not supported" (entry-type entry))))))
 
