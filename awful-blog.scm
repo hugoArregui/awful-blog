@@ -1,25 +1,22 @@
 (module awful-blog
-        (collect-entries define-entry-page index-url 
-         entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra 
-         entry-extra-get ; entry related procedures
-         text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
-         entry->sxml entries-dir entries-info-extension default-file-extensions) ; parameters
+	*
+        ; (define-entry-page index-url 
+        ;  make-entry entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra 
+        ;  entry-extra-get ; entry related procedures
+        ;  text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
+        ;  entry->sxml entries-dir entries-info-extension default-file-extensions) ; parameters
 
         (import chicken scheme data-structures files)
         (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-tags html-utils html-parser)
+        (use (only sequences all?))
+        (use-for-syntax files srfi-13)
 
         (enable-sxml #t)
 
-        (define entries-dir                (make-parameter "articles/"))
-        (define entries-info-extension     (make-parameter "info"))
-        (define default-file-extensions    (make-parameter `((text     . "")
-                                                             (markdown . "md")
-                                                             (html     . "html")
-                                                             (shtml    . "scm"))))
-        (define valid-entry-types (map car (default-file-extensions)))
-
-        (map car (default-file-extensions))
-
+        (define default-file-extensions    (make-parameter `((""     . text)
+                                                             ("md"   . markdown)
+                                                             ("html" . html)
+                                                             ("scm"  . shtml))))
 
         (define-record entry title tags url type resource extra)
 
@@ -40,75 +37,6 @@
                   (entry-url   entry)
                   (entry-resource  entry)
                   (entry-extra entry)))
-
-        (define (invalid-entry-error entry msg)
-          (error (format "invalid entry: ~a (~a)" msg (entry->string entry))))
-
-        (define (validate-entry entry)
-          (cond ((not (entry-type entry))
-                 (invalid-entry-error entry "type is required"))
-                ((not (entry-title entry))
-                 (invalid-entry-error entry "title is required"))
-                ((and (not (redirect-entry? entry))
-                      (not (entry-url entry)))
-                 (invalid-entry-error entry "url is required"))
-                (#t
-                 entry)))
-
-        (define (append-file-extension file extension)
-          (if (string=? "" extension)
-            file
-            (string-append file "." extension)))
-
-        (define (read-info-file info-file)
-          (with-input-from-file info-file 
-                                (lambda () 
-                                  (call-with-current-continuation
-                                    (lambda (k)
-                                      (with-exception-handler (lambda (x) 
-                                                                (print "error reading: " info-file)
-                                                                (k '()))
-                                                              (lambda () (read))))))))
-
-        (define (make-entry-from-info-file info-file)
-          (let* ((data          (read-info-file info-file))
-                 (dir           (pathname-directory info-file))
-                 (info-filename (pathname-file info-file))
-                 (entry         (make-entry #f '() #f #f #f '())))
-            (for-each (match-lambda 
-                        (('title title)
-                         (entry-title-set! entry title))
-                        (('tags tags ...)
-                         (entry-tags-set! entry tags))
-                        (('url url)
-                         (entry-url-set! entry url))
-                        (('type type)
-                         (entry-type-set! entry type))
-                        (('resource resource)
-                         (entry-resource-set! entry resource))
-                        (extra
-                          (entry-extra-set! entry (cons extra (entry-extra entry)))))
-                      data)
-            (unless (entry-resource entry)
-              (entry-resource-set! entry 
-                                   (let ((type (entry-type entry)))
-                                     (if (not (eq? type 'redirect))
-                                       (make-pathname dir (append-file-extension info-filename (get-default-extension type)))
-                                       (invalid-entry-error entry "resource is required")))))
-            (validate-entry entry)))
-
-        (define (get-default-extension type)
-          (let ((r (assq type (default-file-extensions))))
-            (if r
-              (cdr r)
-              (error "no default extension found"))))
-
-        (define (collect-entries)
-          (find-files (entries-dir)
-                      #:test   (string-append ".*\\." (entries-info-extension))
-                      #:seed   '()
-                      #:action (lambda (info-file files)
-                                 (cons (make-entry-from-info-file info-file) files))))
 
         (define (text-entry->sxml entry)
           (let* ((file    (entry-resource entry))
@@ -156,8 +84,7 @@
         (define (define-entry-page mount-url entry . args)
           (if (not (redirect-entry? entry))
             (let* ((path       (make-pathname mount-url (entry-url entry)))
-                   (extra-args (if (not (member 'title: args))
-                                 (cons* 'title: (entry-title entry) args)
+                   (extra-args (if (not (member 'title: args)) (cons* 'title: (entry-title entry) args)
                                  args)))
               (apply define-page 
                      (cons* path
@@ -169,4 +96,76 @@
             (entry-resource entry)
             (make-pathname mount-url (entry-url entry))))
 
+	(define (filter-entries-by-tag entries tags)
+	  (if (null? tags)
+	    entries
+	    (filter (lambda (entry)
+		      (all? (cut member <> (entry-tags entry)) tags)) entries)))
+
+	(define make-entry 
+	  (let ((original    make-entry))
+	    (lambda (title url resource #!key (tags '()) (type #f) (extra '()))
+	      (let ((type 
+		      (cond (type type)
+			    ((string-prefix? "http" resource)
+			     'redirect)
+			    ((assoc (or (pathname-extension resource) "") 
+				    (default-file-extensions)) => cdr)
+			    (#t
+			     (error (string-append "cannot found type for: " resource))))))
+		(original title tags url type resource extra)))))
+
+
+	(define-for-syntax (lookup-property properties property #!key default)
+	  (let ((r (member property properties)))
+	    (if r
+	      (cadr r)
+	      default)))
+
+	(define-for-syntax (url-join base relative)
+	  (let ((separator (if (or (string-prefix? "/" relative)
+				   (string-suffix? "/" base))
+			     ""
+			     "/")))
+	    (string-append base separator relative)))
+
+	(define-syntax branch
+	  (er-macro-transformer
+	    (lambda (x r c)
+	      (let* ((childs       (cadr x))
+		     (props        (cddr x))
+		     (%make-entry  (r 'make-entry))
+		     (%list        (r 'list))
+		     (%append      (r 'append))
+		     (base-dir     (lookup-property props 'base-dir: default: ""))
+		     (base-url     (lookup-property props 'base-url: default: ""))
+		     (tags         (lookup-property props 'tags: default: '())))
+		(let loop ((childs   childs)
+			   (entries  '())
+			   (branches '()))
+		  (if (null? childs)
+		    (if (null? branches)
+		      `(,%list ,@entries)
+		      `(,%append (,%list ,@entries) ,@branches))
+		    (let* ((child  (car childs))
+			   (lookup (lambda (property #!key default)
+				     (lookup-property child property default: default))))
+		      (if (eq? (car child) 'entry)
+			(loop (cdr childs) 
+			      (cons `(,%make-entry ,(lookup 'title:)
+						   ,(url-join base-url (lookup 'url:))
+						   ,(make-pathname base-dir (lookup 'resource:))
+						   tags: ,(cons %list (append tags (lookup 'tags: default: '())))
+						   extra: ,(cons %list (lookup 'extra: default: '()))
+						   type: ,(lookup 'type: default: #f))
+				    entries)
+			      branches)
+			(loop (cdr childs) 
+			      entries 
+			      (cons `(branch
+				       ,(cadr child)
+				       base-dir: ,(make-pathname base-dir (lookup 'base-dir: default: ""))
+				       base-url: ,(url-join base-url (lookup 'base-url: default: ""))
+				       tags: ,(append tags (lookup 'tags: default: '())))
+				    branches))))))))))
 ); end module
