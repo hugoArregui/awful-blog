@@ -37,7 +37,7 @@ For more info, you could check the example into "example" dir.
 
     [parameter] default-file-extension 
 
-Alist containing mappings -> type.
+Alist containing mappings file-extension -> type.
 
 ####  entry->sxml 
 
@@ -87,4 +87,4 @@ Returns the entry url at which the index should point to.
 
 #### branch
 
-    [macro] (branch (entrie|branch) [base-dir: <dir>] [base-url: <url>] [tags: <tags])
+    [macro] (branch (entrie|branch ...) [base-dir: <dir>] [base-url: <url>] [tags: <tags])
