@@ -33,23 +33,11 @@ For more info, you could check the example into "example" dir.
 
 ### Parameters
 
-#### entries-dir 
-
-    [parameter] entries-dir 
-
-Directory for seach entries.
-
-#### entries-info-extension 
-
-    [parameter] entries-info-extension 
-
-File extension for entry files: info.
-
 #### default-file-extension
 
-    [parameter] default-text-file-extension 
+    [parameter] default-file-extension 
 
-alist containing default file extensions. Keys are: text, markdown, html.
+Alist containing mappings -> type.
 
 ####  entry->sxml 
 
@@ -59,17 +47,11 @@ entry->sxml conversion procedure, default: entry->sxml/default
 
 ### Procedures
 
-#### collect-entries 
-
-    [procedure] (collect-entries)
-
-Returns a list of collected entries from (entries-dir).
-
 #### define-entry-page 
 
     [procedure] (define-entry-page mount-url entry)
 
-Defines a awful page from an entry. 
+Defines an awful page from an entry. 
 
 #### index-url 
 
@@ -89,4 +71,20 @@ Returns the entry url at which the index should point to.
 
     [procedure] (entry->sxml/default entry)
     
+#### html-entry->sxml
 
+    [procedure] (html-entry->sxml entry)
+
+#### shtml-entry->sxml
+
+    [procedure] (shtml-entry->sxml entry)
+
+#### tsv->sxml
+
+    [procedure] (tsv->sxml entry)
+
+### Macros
+
+#### branch
+
+    [macro] (branch (entrie|branch) [base-dir: <dir>] [base-url: <url>] [tags: <tags])
