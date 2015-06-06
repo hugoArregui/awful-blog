@@ -6,21 +6,11 @@
 (page-charset "utf-8")
 (page-template (lambda (content . rest) content))
 
-(entries-dir "notes/")
-
 (define (wrap-content content)
   content)
 
 (entry->sxml (lambda (entry)
                (wrap-content (entry->sxml/default entry))))
-
-(define (filter-entries-by-tag entries tags)
-  (if (null? tags)
-    entries
-    (filter (lambda (entry)
-              (any (lambda (tag)
-                     (member tag tags))
-                   (entry-tags entry))) entries)))
 
 (define (define-index-page url entries)
   (define-page url
@@ -42,7 +32,21 @@
     title: "Index" ))
 
 (define (define-blog-pages url)
-  (let* ((entries (collect-entries)))
+  (let* ((entries (branch
+                    ((entry title:    "bar"
+                            url:      "bar"
+                            resource: "bar"
+                            type:     'markdown
+                            tags:     ('bar))
+                     (entry title:    "foo"
+                            url:      "foo"
+                            resource: "foo"
+                            tags:     ('foo))
+                     (entry title:    "hh"
+                            url:      "hh"
+                            resource: "hh.html"
+                            tags:     ('hh)))
+                   base-dir: "notes/")))
     (define-index-page url entries)
     (for-each (cut define-entry-page url <>) entries)))
 
