@@ -1,7 +1,7 @@
 (module awful-blog
 	*
-        ; (define-entry-page index-url 
-        ;  make-entry entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra 
+        ; (define-entry-page index-url
+        ;  make-entry entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra
         ;  entry-extra-get ; entry related procedures
         ;  text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
         ;  entry->sxml entries-dir entries-info-extension default-file-extensions) ; parameters
@@ -31,10 +31,10 @@
           (eq? (entry-type entry) 'redirect))
 
         (define (entry->string entry)
-          (format "<#entry title: ~a, tags: ~a, type: ~a, url: ~a, resource: ~a, extra: ~a>" 
-                  (entry-title entry) 
-                  (entry-tags  entry) 
-                  (entry-type  entry) 
+          (format "<#entry title: ~a, tags: ~a, type: ~a, url: ~a, resource: ~a, extra: ~a>"
+                  (entry-title entry)
+                  (entry-tags  entry)
+                  (entry-type  entry)
                   (entry-url   entry)
                   (entry-resource  entry)
                   (entry-extra entry)))
@@ -96,7 +96,7 @@
 					      headers)))
 				    (tbody
 				      ,(map (lambda (row)
-					      `(tr 
+					      `(tr
 						 ,(map (lambda (cell)
 							 `(td ,cell))
 						       row)))
@@ -124,9 +124,9 @@
             (let* ((path       (make-pathname mount-url (entry-url entry)))
                    (extra-args (if (not (member 'title: args)) (cons* 'title: (entry-title entry) args)
                                  args)))
-              (apply define-page 
+              (apply define-page
                      (cons* path
-                            (lambda () 
+                            (lambda ()
                               ((entry->sxml) entry)) extra-args)))))
 
         (define (index-url mount-url entry)
@@ -140,17 +140,21 @@
 	    (filter (lambda (entry)
 		      (all? (cut member <> (entry-tags entry)) tags)) entries)))
 
-	(define make-entry 
-	  (let ((original    make-entry))
-	    (lambda (title url resource #!key (tags '()) (type #f) (extra '()))
-	      (let ((type 
-		      (cond (type type)
+	(define make-entry
+	  (let ((original make-entry))
+	    (lambda (title resource #!key (url #f) (tags '()) (type #f) (extra '()))
+	      (let ((type
+		      (cond (type
+		      	      type)
 			    ((string-prefix? "http" resource)
 			     'redirect)
-			    ((assoc (or (pathname-extension resource) "") 
+			    ((assoc (or (pathname-extension resource) "")
 				    (default-file-extensions)) => cdr)
 			    (#t
-			     (error (string-append "cannot found type for: " resource))))))
+			     (error 'make-entry (string-append "cannot found type for: " resource))))))
+		(when (and (not (eq? type 'redirect))
+			   (not url))
+		  (error 'make-entry "url required"))
 		(original title tags url type resource extra)))))
 
 
@@ -187,19 +191,22 @@
 		      `(,%append (,%list ,@entries) ,@branches))
 		    (let* ((child  (car childs))
 			   (lookup (lambda (property #!key default)
-				     (lookup-property child property default: default))))
+				     (lookup-property child property default: default)))
+			   (url    (lookup 'url:)))
 		      (if (eq? (car child) 'entry)
-			(loop (cdr childs) 
+			(loop (cdr childs)
 			      (cons `(,%make-entry ,(lookup 'title:)
-						   ,(url-join base-url (lookup 'url:))
-						   ,(make-pathname base-dir (lookup 'resource:))
+						   ,(if url
+						      (make-pathname base-dir (lookup 'resource:))
+						      (lookup 'resource:)) ; it's a redirecty entry
+						   url: ,(if url (url-join base-url url) #f)
 						   tags: ,(cons %list (append tags (lookup 'tags: default: '())))
 						   extra: ,(cons %list (lookup 'extra: default: '()))
 						   type: ,(lookup 'type: default: #f))
 				    entries)
 			      branches)
-			(loop (cdr childs) 
-			      entries 
+			(loop (cdr childs)
+			      entries
 			      (cons `(branch
 				       ,(cadr child)
 				       base-dir: ,(make-pathname base-dir (lookup 'base-dir: default: ""))

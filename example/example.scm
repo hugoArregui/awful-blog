@@ -1,4 +1,4 @@
-(use awful awful-blog traversal html-tags)
+(use awful awful-blog traversal html-tags srfi-13)
 (use html-tags html-utils)
 
 (enable-sxml #t)
@@ -13,20 +13,11 @@
                          (handler))))
 
 
-(entries-dir "notes/")
-
 (define (wrap-content content)
   content)
 
 (entry->sxml (lambda (entry)
                (wrap-content (entry->sxml/default entry))))
-
-(define (filter-entries-by-tag entries tags)
-  (if (null? tags)
-    entries
-    (filter (lambda (entry)
-              (any (lambda (tag)
-                     (member tag tags)) (entry-tags entry))) entries)))
 
 (define (define-index-page url entries)
   (define-page url
@@ -41,14 +32,36 @@
                      (<li> (link url (entry-title entry)) 
                            " ( " 
                            (map (lambda (tag)
-                                          (list (link (string-append "?tags=" $tags "," (symbol->string tag)) tag) " "))
-                                        (entry-tags entry))
+                                  (list (link (string-append "?tags=" $tags "," (symbol->string tag)) tag) " "))
+                                (entry-tags entry))
                            ")")))
                  entries)))))
     title: "Index" ))
 
 (define (define-blog-pages url)
-  (let* ((entries (collect-entries)))
+  (let ((entries (branch
+                   ((entry title:    "Something in markdown format!!" 
+                           url:      "/some" 
+                           resource: "some.md")
+                    (entry title:    "pacman"
+                           url:      "/pacman" 
+                           resource: "pacman"
+                           tags: ('arch))
+                    (entry title:    "Mitopoeia"
+                           url:      "/mitopoeia" 
+                           resource: "mitopoeia.html"
+                           tags: ('literature))
+                    (entry title:    "Read the docs!"
+                           resource: "http://api.call-cc.org/doc/"
+                           tags: ('chicken))
+                    (entry title:    "List"
+                           url:      "/list"
+                           resource: "list.tsv")
+                    (entry title:    "Literature" 
+                           url:      "/literature" 
+                           resource: "literature" 
+                           tags: ('literature 'wikipedia)))
+                   base-dir: "notes/")))
     (define-index-page url entries)
     (for-each (cut define-entry-page url <>) entries)))
 

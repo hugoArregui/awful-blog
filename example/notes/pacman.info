@@ -1,6 +1,0 @@
-((title "Pacman")
- (type text)
- (resource "notes/pacman")
- (tags pacman arch)
- (url  "pacman"))
-
