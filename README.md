@@ -31,30 +31,30 @@ properties (base-dir, base-url and tags) are inherited from their childs.
 
 Example:
 
-  (let ((entries (branch
-                   ((entry title:    "Something in markdown format!!" 
-                           url:      "/some" 
-                           resource: "some.md")
-                    (entry title:    "pacman"
-                           url:      "/pacman" 
-                           resource: "pacman"
-                           tags: ('arch))
-                    (entry title:    "Read the docs!"
-                           resource: "http://api.call-cc.org/doc/"
-                           tags: ('chicken))
-                    (entry title:    "List"
-                           url:      "/list"
-                           resource: "list.tsv")
-                    (branch
-                      ((entry title:    "Mitopoeia"
-                              url:      "/mitopoeia" 
-                              resource: "mitopoeia.html")
-                       (entry title:    "Literature" 
-                              url:      "/literature" 
-                              resource: "literature" 
-                              tags: ('wikipedia)))
-                      tags: ('literature)))
-                   base-dir: "notes/")))
+    (let ((entries (branch
+                     ((entry title:    "Something in markdown format!!" 
+                             url:      "/some" 
+                             resource: "some.md")
+                      (entry title:    "pacman"
+                             url:      "/pacman" 
+                             resource: "pacman"
+                             tags: ('arch))
+                      (entry title:    "Read the docs!"
+                             resource: "http://api.call-cc.org/doc/"
+                             tags: ('chicken))
+                      (entry title:    "List"
+                             url:      "/list"
+                             resource: "list.tsv")
+                      (branch
+                        ((entry title:    "Mitopoeia"
+                                url:      "/mitopoeia" 
+                                resource: "mitopoeia.html")
+                         (entry title:    "Literature" 
+                                url:      "/literature" 
+                                resource: "literature" 
+                                tags: ('wikipedia)))
+                        tags: ('literature)))
+                     base-dir: "notes/")))
 
 Here a parent branch defines the base url for the entries "notes/", but also
 a second one is defined with the tag "literature", to avoid repeating the tag in
