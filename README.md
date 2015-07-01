@@ -1,7 +1,5 @@
 # awful-blog 
 
-[![Build Status](https://travis-ci.org/hugoArregui/awful-blog.png)](https://travis-ci.org/hugoArregui/awful-blog)
-
 A blog egg for Awful. A blog is a just a collection of entries. A new entry can be created using the make-entry procedure:
 
 	[procedure] (make-entry (title resource #!key url tags type extra))
