@@ -96,6 +96,10 @@ Creates a new entry
 
 Defines an awful page from an entry. 
 
+#### filter-entries-by-tag
+
+    [procedure] (filter-entries-by-tag entries tags)
+
 #### index-url 
 
     [procedure] (index-url mount-url entry)
@@ -130,4 +134,5 @@ Returns the entry url at which the index should point to.
 
 #### branch
 
-    [macro] (branch (entry|branch ...) [base-dir: <dir>] [base-url: <url>] [tags: <tags])
+    [macro] (branch ((entry title: <title> url: <url> resource: <resource> | branch ) ...)
+                    [base-dir: <dir>] [base-url: <url>] [tags: <tags])

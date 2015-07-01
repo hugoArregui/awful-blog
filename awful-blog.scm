@@ -1,10 +1,10 @@
 (module awful-blog
-	*
-        ; (define-entry-page index-url
-        ;  make-entry entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra
-        ;  entry-extra-get ; entry related procedures
-        ;  text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
-        ;  entry->sxml entries-dir entries-info-extension default-file-extensions) ; parameters
+        (define-entry-page index-url
+         make-entry entry->string entry-title entry-tags entry-type entry-url entry-resource entry-extra
+         entry-extra-get filter-entries-by-tag ; entry related procedures
+         text-entry->sxml markdown-entry->sxml entry->sxml/default ; entry conversion procedures
+         entry->sxml default-file-extensions ; parameters
+         branch) ; macros
 
         (import chicken scheme data-structures files)
         (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-tags html-utils html-parser)
