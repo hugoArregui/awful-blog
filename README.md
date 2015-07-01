@@ -2,28 +2,65 @@
 
 [![Build Status](https://travis-ci.org/hugoArregui/awful-blog.png)](https://travis-ci.org/hugoArregui/awful-blog)
 
-A blog egg for Awful. The idea is very simple: each blog entry has info file in the entries directory (see entries-dir), 
-the info file is parsed and loaded into the app. 
+A blog egg for Awful. A blog is a just a collection of entries. A new entry can be created using the make-entry procedure:
 
-The info file:
-
-    ((title <title>)
-     (type <text|markdown|redirect>)
-     (resource <filename|url>)   ;optional for type != redirect
-     (tags <tag ...>)
-     (url  <url>))
+	[procedure] (make-entry (title resource #!key url tags type extra))
 
 -  title: entry title
--  type: currently supported by the tool are: text, markdown, html, redirect, shtml
+-  type: types supported by default are: text, markdown, html, redirect, shtml
 -  resource: if type == redirect, resource is the redirect url,
-   otherwise point to a non-default file location. If omitted, awful-blog will
-   search for a file with the same name as the info file and the default
-   extension (see default-text-file-extension, default-markdown-file-extension)
--  tags: entry tags
--  url: url in which the entry will mounted (normally, after a default mount point)
--  any other data will be stored in the "extra" slot of the entry.
+   otherwise it should point to a file.
+-  tags: entry tags (usually, a list of symbols)
+-  url: url in which the entry will mounted
+-  extra: a list extra data
 
-For more info, you could check the example into "example" dir.
+
+## Index
+
+
+A very common use case (for me at least) is to define a scm file with an
+"index", that is: a scheme file where the entries are statically defined.
+
+There is a syntax sugar to do that:
+
+    [macro] (branch ((entry title: <title> url: <url> resource: <resource> | branch ) ...)
+                    [base-dir: <dir>] [base-url: <url>] [tags: <tags])
+
+The branch macro defines a list of entries and/or sub-branches. The branch
+properties (base-dir, base-url and tags) are inherited from their childs.
+
+Example:
+
+  (let ((entries (branch
+                   ((entry title:    "Something in markdown format!!" 
+                           url:      "/some" 
+                           resource: "some.md")
+                    (entry title:    "pacman"
+                           url:      "/pacman" 
+                           resource: "pacman"
+                           tags: ('arch))
+                    (entry title:    "Read the docs!"
+                           resource: "http://api.call-cc.org/doc/"
+                           tags: ('chicken))
+                    (entry title:    "List"
+                           url:      "/list"
+                           resource: "list.tsv")
+                    (branch
+                      ((entry title:    "Mitopoeia"
+                              url:      "/mitopoeia" 
+                              resource: "mitopoeia.html")
+                       (entry title:    "Literature" 
+                              url:      "/literature" 
+                              resource: "literature" 
+                              tags: ('wikipedia)))
+                      tags: ('literature)))
+                   base-dir: "notes/")))
+
+Here a parent branch defines the base url for the entries "notes/", but also
+a second one is defined with the tag "literature", to avoid repeating the tag in
+each entry.
+
+For more info, check the example into "example" dir.
 
 ## API specification 
 
@@ -46,6 +83,12 @@ Alist containing mappings file-extension -> type.
 entry->sxml conversion procedure, default: entry->sxml/default 
 
 ### Procedures
+
+#### make-entry
+
+	[procedure] (make-entry (title resource #!key url tags type extra))
+
+Creates a new entry
 
 #### define-entry-page 
 
@@ -87,4 +130,4 @@ Returns the entry url at which the index should point to.
 
 #### branch
 
-    [macro] (branch (entrie|branch ...) [base-dir: <dir>] [base-url: <url>] [tags: <tags])
+    [macro] (branch (entry|branch ...) [base-dir: <dir>] [base-url: <url>] [tags: <tags])

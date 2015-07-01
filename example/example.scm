@@ -47,20 +47,21 @@
                            url:      "/pacman" 
                            resource: "pacman"
                            tags: ('arch))
-                    (entry title:    "Mitopoeia"
-                           url:      "/mitopoeia" 
-                           resource: "mitopoeia.html"
-                           tags: ('literature))
                     (entry title:    "Read the docs!"
                            resource: "http://api.call-cc.org/doc/"
                            tags: ('chicken))
                     (entry title:    "List"
                            url:      "/list"
                            resource: "list.tsv")
-                    (entry title:    "Literature" 
-                           url:      "/literature" 
-                           resource: "literature" 
-                           tags: ('literature 'wikipedia)))
+                    (branch
+                      ((entry title:    "Mitopoeia"
+                              url:      "/mitopoeia" 
+                              resource: "mitopoeia.html")
+                       (entry title:    "Literature" 
+                              url:      "/literature" 
+                              resource: "literature" 
+                              tags: ('wikipedia)))
+                      tags: ('literature)))
                    base-dir: "notes/")))
     (define-index-page url entries)
     (for-each (cut define-entry-page url <>) entries)))
