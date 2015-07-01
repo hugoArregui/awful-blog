@@ -7,11 +7,11 @@ A blog egg for Awful. A blog is a just a collection of entries. A new entry can 
 	[procedure] (make-entry (title resource #!key url tags type extra))
 
 -  title: entry title
--  type: types supported by default are: text, markdown, html, redirect, shtml
 -  resource: if type == redirect, resource is the redirect url,
    otherwise it should point to a file.
+-  url: url in which the entry will be mounted
 -  tags: entry tags (usually, a list of symbols)
--  url: url in which the entry will mounted
+-  type: types supported by default are: text, markdown, html, redirect, shtml
 -  extra: a list extra data
 
 
