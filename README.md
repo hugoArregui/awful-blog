@@ -54,7 +54,8 @@ Example:
                             resource: "literature" 
                             tags: ('wikipedia)))
                     tags: ('literature)))
-                 base-dir: "notes/")))```
+                 base-dir: "notes/")))
+```
 
 Here a parent branch defines the base url for the entries "notes/", but also
 a second one is defined with the tag "literature", to avoid repeating the tag in
