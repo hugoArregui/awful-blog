@@ -7,7 +7,7 @@
          branch) ; macros
 
         (import chicken scheme data-structures files)
-        (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-tags html-utils html-parser)
+        (use awful posix matchable srfi-13 utils srfi-1 traversal lowdown html-parser)
         (use (only sequences all?))
         (use-for-syntax files srfi-13)
 

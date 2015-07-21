@@ -2,7 +2,7 @@
 
 ((license "BSD License")
  (category web)
- (needs awful matchable traversal lowdown html-tags html-utils html-parser)
+ (needs awful matchable traversal lowdown html-parser)
  (test-depends server-test test http-client)
  (author "Hugo Arregui")
  (synopsis "Blog tool for awful web framework"))
