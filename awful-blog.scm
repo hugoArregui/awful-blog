@@ -13,11 +13,11 @@
 
         (enable-sxml #t)
 
-        (define default-file-extensions    (make-parameter `((""     . text)
-                                                             ("md"   . markdown)
-                                                             ("html" . html)
-                                                             ("scm"  . shtml)
-                                                             ("tsv"  . tsv))))
+        (define default-file-extensions (make-parameter `((""     . text)
+							  ("md"   . markdown)
+							  ("html" . html)
+							  ("scm"  . shtml)
+							  ("tsv"  . tsv))))
 
         (define-record entry title tags url type resource extra)
 
@@ -57,14 +57,12 @@
 
         (define (html-entry->sxml entry)
           (let* ((file    (entry-resource entry))
-                 (content (with-input-from-file file html->sxml))
-                 (title   (entry-title entry)))
+                 (content (with-input-from-file file html->sxml)))
             (cdr content)))
 
         (define (shtml-entry->sxml entry)
           (let* ((file    (entry-resource entry))
-                 (content (with-input-from-file file read))
-                 (title   (entry-title entry)))
+                 (content (with-input-from-file file read)))
             (eval content)))
 
 	(define (tsv->sxml entry)
@@ -75,7 +73,7 @@
 					   (headers  #f)
 					   (rows     '()))
 				  (cond ((null? lines)
-					 (values headers rows))
+					 (values headers (reverse rows)))
 					((string-prefix? "#" (car lines))
 					 (loop (cdr lines) headers rows))
 					((not headers)
