@@ -86,7 +86,7 @@
 					     (append! row (make-list (- lheaders lrow))))
 					   (loop (cdr lines) headers (cons row rows)))))))
 			      (lambda (headers rows)
-				`((table
+				`((table (@ (class "table"))
 				    (thead
 				      (tr
 					,(map (lambda (header)
